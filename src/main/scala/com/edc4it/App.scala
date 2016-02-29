@@ -1,15 +1,22 @@
 package com.edc4it
 
+import scala.annotation.tailrec
+
 /**
  * @author ${user.name}
  */
 object App {
-  
-  def foo(x : Array[String]) = x.foldLeft("")((a,b) => a + b)
-  
+
+
+  @tailrec
+  def foo(): Unit = {
+    println( "Hello you look awesome.." )
+    Thread.sleep(1000)
+    foo()
+  }
+
   def main(args : Array[String]) {
-    println( "Hello World!" )
-    println("concat arguments = " + foo(args))
+    foo()
   }
 
 }
