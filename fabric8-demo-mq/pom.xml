@@ -222,7 +222,7 @@
                                     <JAVA_LIB_DIR>/deployments/lib</JAVA_LIB_DIR>
                                     <JAVA_MAIN_CLASS>org.apache.camel.cdi.Main</JAVA_MAIN_CLASS>
                                     <!--<FABRIC8MQ_SERVICE_HOST>172.30.3.186</FABRIC8MQ_SERVICE_HOST>-->
-                                    <FABRIC8MQ_SERVICE_NAME>amqbroker</FABRIC8MQ_SERVICE_NAME>
+                                    <FABRIC8MQ_SERVICE_NAME>fabric8mq</FABRIC8MQ_SERVICE_NAME>
                                 </env>
                             </build>
                         </image>
