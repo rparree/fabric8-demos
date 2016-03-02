@@ -2,34 +2,47 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.edc4it</groupId>
-    <artifactId>fabric8-demo-scala</artifactId>
+    <artifactId>fabric8-demo-mq</artifactId>
     <version>1.0-SNAPSHOT</version>
     <name>${project.artifactId}</name>
-    <description>My wonderfull scala app</description>
-    <inceptionYear>2015</inceptionYear>
-    <licenses>
-        <license>
-            <name>My License</name>
-            <url>http://....</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
+    <description>fabric8 camel/mq example</description>
+    <inceptionYear>2016</inceptionYear>
 
     <properties>
-        <maven.compiler.source>1.6</maven.compiler.source>
-        <maven.compiler.target>1.6</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
         <encoding>UTF-8</encoding>
+        <!--versions-->
+        <weld.version>2.3.3.Final</weld.version>
         <scala.version>2.11.7</scala.version>
         <scala.compat.version>2.11</scala.compat.version>
         <fabric8.version>2.2.95</fabric8.version>
         <!---->
+        <docker.image>${project.groupId}/${project.artifactId}:${project.version}</docker.image>
+        <docker.port.container.jolokia>8778</docker.port.container.jolokia>
+
+        <!--See http://fabric8.io/guide/mavenFabric8Json.html#maven-properties -->
         <fabric8.label.container>java</fabric8.label.container>
         <fabric8.label.group>demos</fabric8.label.group>
-        <fabric8.iconRef>java</fabric8.iconRef>
-        <docker.image>${project.groupId}/${project.artifactId}:${project.version}</docker.image>
+        <fabric8.iconRef>icons/scala.svg</fabric8.iconRef>
 
+        <fabric8.service.name>${project.artifactId}</fabric8.service.name>
+        <fabric8.service.port>80</fabric8.service.port>
+        <fabric8.service.containerPort>8080</fabric8.service.containerPort>
+        <fabric8.service.type>LoadBalancer</fabric8.service.type>  <!--also exports the service-->
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-parent</artifactId>
+                <version>2.16.2</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>org.scala-lang</groupId>
@@ -37,6 +50,54 @@
             <version>${scala.version}</version>
         </dependency>
 
+        <!-- Camel -->
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-scala</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-cdi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-jetty</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.fabric8.mq</groupId>
+            <artifactId>camel-amq</artifactId>
+            <version>${fabric8.version}</version>
+        </dependency>
+
+        <!-- cdi container -->
+        <dependency>
+            <groupId>org.jboss.weld.se</groupId>
+            <artifactId>weld-se</artifactId>
+            <version>${weld.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.weld</groupId>
+            <artifactId>weld-core</artifactId>
+            <version>${weld.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.deltaspike.cdictrl</groupId>
+            <artifactId>deltaspike-cdictrl-weld</artifactId>
+            <version>1.5.4</version>
+        </dependency>
+        <!-- logging -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+        </dependency>
         <!-- Test -->
         <dependency>
             <groupId>junit</groupId>
@@ -70,8 +131,7 @@
         </profile>
     </profiles>
     <build>
-        <sourceDirectory>src/main/scala</sourceDirectory>
-        <testSourceDirectory>src/test/scala</testSourceDirectory>
+
         <plugins>
             <plugin>
                 <!-- see http://davidb.github.com/scala-maven-plugin -->
@@ -114,7 +174,7 @@
                         </goals>
                         <phase>package</phase>
                         <configuration>
-                            <javaMainClass>com.edc4it.App</javaMainClass>
+                            <javaMainClass>org.apache.camel.cdi.Main</javaMainClass>
                             <archive>${project.build.directory}/${project.artifactId}-${project.version}-app.zip
                             </archive>
                         </configuration>
@@ -153,13 +213,16 @@
                             <name>${docker.image}</name>
                             <build>
                                 <from>fabric8/s2i-java:1.2</from>
+
                                 <assembly>
                                     <basedir>/deployments</basedir>
                                     <descriptorRef>hawt-app</descriptorRef>
                                 </assembly>
                                 <env>
                                     <JAVA_LIB_DIR>/deployments/lib</JAVA_LIB_DIR>
-                                    <JAVA_MAIN_CLASS>com.edc4it.App</JAVA_MAIN_CLASS>
+                                    <JAVA_MAIN_CLASS>org.apache.camel.cdi.Main</JAVA_MAIN_CLASS>
+                                    <!--<FABRIC8MQ_SERVICE_HOST>172.30.3.186</FABRIC8MQ_SERVICE_HOST>-->
+                                    <FABRIC8MQ_SERVICE_NAME>amqbroker</FABRIC8MQ_SERVICE_NAME>
                                 </env>
                             </build>
                         </image>
